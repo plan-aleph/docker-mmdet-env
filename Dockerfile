@@ -1,40 +1,14 @@
-ARG CUDA_VERSION
-ARG FLAVOR="runtime"
-ARG SYS_VERSION
+ARG MMCV_VERSION="1.7.1"
+ARG PYTORCH="22.12"
 
-FROM nvidia/cuda:${CUDA_VERSION}-${FLAVOR}-${SYS_VERSION}
+FROM misakiminato/mmcv:torch${PYTORCH}-mmcv${MMCV_VERSION} AS base
 
-ARG PYTHON_VERSION
+# Install MMDetection
+RUN conda clean --all
+RUN git clone https://github.com/open-mmlab/mmdetection.git /mmdetection
+WORKDIR /mmdetection
+ENV FORCE_CUDA="1"
+RUN mim install --no-cache-dir -r requirements/build.txt
+RUN mim install --no-cache-dir -e .
 
-RUN apt update \
-    && apt upgrade -y \
-    && apt install -y --no-install-recommends \
-    wget \
-    build-essential \
-    libreadline-dev \ 
-    libncursesw5-dev \
-    libssl-dev \
-    libsqlite3-dev \
-    libgdbm-dev \
-    libbz2-dev \
-    liblzma-dev \
-    zlib1g-dev \
-    uuid-dev \
-    libffi-dev \
-    libdb-dev \
-    && wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
-    && tar -xvf Python-${PYTHON_VERSION}.tgz \
-    && cd Python-${PYTHON_VERSION} \
-    && ./configure \
-    && make -j 8 \
-    && make install \
-    && cd .. \
-    && rm -rf Python-${PYTHON_VERSION} \
-    && rm Python-${PYTHON_VERSION}.tgz \
-    && apt-get autoremove -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && echo "install finished."
-
-RUN python3 -m venv /venv --system-site-packages
-ENV PATH=/venv/bin:$PATH
+RUN apt update
