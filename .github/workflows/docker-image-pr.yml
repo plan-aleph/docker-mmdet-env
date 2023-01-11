@@ -1,10 +1,8 @@
-name: Docker Image CI
+name: Docker Image CI (PR)
 
 on:
-  push:
-    branches: [ "main" ]
-  # pull_request:
-  #   types: [ opened, reopened ]
+  pull_request:
+    types: [ opened, reopened ]
 
 jobs:
   build:
@@ -12,7 +10,7 @@ jobs:
         matrix:
           pytorch_date: [ "22.12", "22.11" ]
           mmcv_version: [ "1.7.1", "1.7.0", "1.6.2", "1.6.1", "1.6.0", "1.5.3", "1.5.2" ]
-          
+
     runs-on: ubuntu-latest
 
     steps:
@@ -34,8 +32,8 @@ jobs:
     - name: Build and push Docker images
       uses: docker/build-push-action@v3.2.0
       with:
-        tags: misakiminato/mmdet:torch${{ matrix.pytorch_date }}-mmcv${{ matrix.mmcv_version }} 
-        push: true
+        tags: mmdet:torch${{ matrix.pytorch_date }}-mmcv${{ matrix.mmcv_version }} 
+        push: false
         build-args: |
           PYTORCH=${{ matrix.pytorch_date }} 
           MMCV_VERSION=${{ matrix.mmcv_version }} 
